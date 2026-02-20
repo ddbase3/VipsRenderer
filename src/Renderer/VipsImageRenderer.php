@@ -27,8 +27,8 @@ final class VipsImageRenderer implements IImageRenderer
 
     public function __construct(
         string $tmpDir = '/tmp',
-        string $vipsBin = 'vips',
-        string $vipsHeaderBin = 'vipsheader',
+        string $vipsBin = '/usr/bin/vips',
+        string $vipsHeaderBin = '/usr/bin/vipsheader',
     ) {
         $this->tmpDir = rtrim($tmpDir, '/');
         $this->vipsBin = $vipsBin;
@@ -495,12 +495,32 @@ final class VipsImageRenderer implements IImageRenderer
         return $stdout;
     }
 
+/**
+ * Process execution.
+ *
+ * @param list<string> $cmd
+ */
+private function exec(array $cmd, int &$exitCode, string &$stderr): string {
+	$escaped = implode(' ', array_map('escapeshellarg', $cmd));
+
+	$out = [];
+	$exitCode = 0;
+
+	@exec($escaped . ' 2>&1', $out, $exitCode);
+
+	$combined = implode("\n", $out);
+	$stderr = $combined;
+
+	return $combined;
+}
+
     /**
      * Low-level process execution (no shell).
+     * (currently unused, because proc_open is restricted)
      *
      * @param list<string> $cmd
      */
-    private function exec(array $cmd, int &$exitCode, string &$stderr): string
+    private function execProcOpen(array $cmd, int &$exitCode, string &$stderr): string
     {
         $descriptors = [
             0 => ['pipe', 'r'],
