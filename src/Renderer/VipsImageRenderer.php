@@ -284,14 +284,14 @@ final class VipsImageRenderer implements IImageRenderer {
 
 		$shadows = $this->clampSignedUnit((float)($a['shadows'] ?? 0.0));
 		if ($shadows !== 0.0) {
-			$shadowGamma = pow(2.0, -$shadows * 0.55);
-			$cur = $this->applyLabGamma($cur, $shadowGamma, $workFiles);
+			$shadowGamma = pow(2.0, $shadows * 0.55);
+			$cur = $this->applyLabNormalizedGamma($cur, $shadowGamma, $workFiles);
 		}
 
 		$highlights = $this->clampSignedUnit((float)($a['highlights'] ?? 0.0));
 		if ($highlights !== 0.0) {
-			$highlightGamma = pow(2.0, $highlights * 0.55);
-			$cur = $this->applyLabInvertedGamma($cur, $highlightGamma, $workFiles);
+			$highlightGamma = pow(2.0, -$highlights * 0.55);
+			$cur = $this->applyLabNormalizedInvertedGamma($cur, $highlightGamma, $workFiles);
 		}
 
 		$blacks = $this->clampSignedUnit((float)($a['blacks'] ?? 0.0));
@@ -524,29 +524,6 @@ final class VipsImageRenderer implements IImageRenderer {
 		return $this->toColourspace($lab2, 'srgb', $workFiles, 'lab_to_rgb');
 	}
 
-	private function applyLabInvertedGamma(string $cur, float $gamma, array &$workFiles): string {
-		if (!is_finite($gamma) || $gamma <= 0.0) {
-			throw new InvalidImageEditException("Invalid inverted LAB gamma: {$gamma}");
-		}
-
-		$lab = $this->toColourspace($cur, 'lab', $workFiles, 'lab_cs');
-		$l = $this->extractBand($lab, 0, $workFiles, 'lab_l');
-		$a = $this->extractBand($lab, 1, $workFiles, 'lab_a');
-		$b = $this->extractBand($lab, 2, $workFiles, 'lab_b');
-
-		$inv1 = $this->tmpFile('lab_inv1', 'v', $workFiles);
-		$this->run([$this->vipsBin, 'invert', $l, $inv1]);
-
-		$inv2 = $this->tmpFile('lab_inv2', 'v', $workFiles);
-		$this->run([$this->vipsBin, 'gamma', $inv1, $inv2, '--exponent', $this->fmtFloat($gamma)]);
-
-		$l2 = $this->tmpFile('lab_l2', 'v', $workFiles);
-		$this->run([$this->vipsBin, 'invert', $inv2, $l2]);
-
-		$lab2 = $this->joinThreeBands($l2, $a, $b, $workFiles, 'lab_join');
-		return $this->toColourspace($lab2, 'srgb', $workFiles, 'lab_to_rgb');
-	}
-
 	private function applyLabLinear(string $cur, float $mul, float $add, array &$workFiles): string {
 		$lab = $this->toColourspace($cur, 'lab', $workFiles, 'lab_cs');
 		$l = $this->extractBand($lab, 0, $workFiles, 'lab_l');
@@ -567,6 +544,58 @@ final class VipsImageRenderer implements IImageRenderer {
 
 		$pivot = max(0.0, min(100.0, $pivot));
 		return $this->applyLabLinear($cur, $mul, $pivot * (1.0 - $mul), $workFiles);
+	}
+
+	private function applyLabNormalizedGamma(string $cur, float $gamma, array &$workFiles): string {
+		if (!is_finite($gamma) || $gamma <= 0.0) {
+			throw new InvalidImageEditException("Invalid LAB gamma: {$gamma}");
+		}
+
+		$lab = $this->toColourspace($cur, 'lab', $workFiles, 'lab_cs');
+		$l = $this->extractBand($lab, 0, $workFiles, 'lab_l');
+		$a = $this->extractBand($lab, 1, $workFiles, 'lab_a');
+		$b = $this->extractBand($lab, 2, $workFiles, 'lab_b');
+
+		$l01 = $this->tmpFile('lab_l01', 'v', $workFiles);
+		$this->runLinear($l, $l01, 0.01, 0.0);
+
+		$l02 = $this->tmpFile('lab_l02', 'v', $workFiles);
+		$this->run([$this->vipsBin, 'gamma', $l01, $l02, '--exponent', $this->fmtFloat($gamma)]);
+
+		$l2 = $this->tmpFile('lab_l2', 'v', $workFiles);
+		$this->runLinear($l02, $l2, 100.0, 0.0);
+
+		$lab2 = $this->joinThreeBands($l2, $a, $b, $workFiles, 'lab_join');
+		return $this->toColourspace($lab2, 'srgb', $workFiles, 'lab_to_rgb');
+	}
+
+	private function applyLabNormalizedInvertedGamma(string $cur, float $gamma, array &$workFiles): string {
+		if (!is_finite($gamma) || $gamma <= 0.0) {
+			throw new InvalidImageEditException("Invalid inverted LAB gamma: {$gamma}");
+		}
+
+		$lab = $this->toColourspace($cur, 'lab', $workFiles, 'lab_cs');
+		$l = $this->extractBand($lab, 0, $workFiles, 'lab_l');
+		$a = $this->extractBand($lab, 1, $workFiles, 'lab_a');
+		$b = $this->extractBand($lab, 2, $workFiles, 'lab_b');
+
+		$l01 = $this->tmpFile('lab_l01', 'v', $workFiles);
+		$this->runLinear($l, $l01, 0.01, 0.0);
+
+		$inv1 = $this->tmpFile('lab_inv1', 'v', $workFiles);
+		$this->runLinear($l01, $inv1, -1.0, 1.0);
+
+		$inv2 = $this->tmpFile('lab_inv2', 'v', $workFiles);
+		$this->run([$this->vipsBin, 'gamma', $inv1, $inv2, '--exponent', $this->fmtFloat($gamma)]);
+
+		$l02 = $this->tmpFile('lab_l02', 'v', $workFiles);
+		$this->runLinear($inv2, $l02, -1.0, 1.0);
+
+		$l2 = $this->tmpFile('lab_l2', 'v', $workFiles);
+		$this->runLinear($l02, $l2, 100.0, 0.0);
+
+		$lab2 = $this->joinThreeBands($l2, $a, $b, $workFiles, 'lab_join');
+		return $this->toColourspace($lab2, 'srgb', $workFiles, 'lab_to_rgb');
 	}
 
 	private function applyLabMedianLuma(string $cur, int $size, array &$workFiles): string {
@@ -709,11 +738,20 @@ final class VipsImageRenderer implements IImageRenderer {
 			throw new InvalidImageEditException('Linear parameters must be finite.');
 		}
 
-		if ($add < 0) {
-			$this->run([$this->vipsBin, 'linear', $in, $out, $this->fmtFloat($mul), '--', $this->fmtFloat($add)]);
-		} else {
-			$this->run([$this->vipsBin, 'linear', $in, $out, $this->fmtFloat($mul), $this->fmtFloat($add)]);
+		if ($mul < 0.0 || $add < 0.0) {
+			$this->run([
+				$this->vipsBin,
+				'linear',
+				$in,
+				$out,
+				'--',
+				$this->fmtFloat($mul),
+				$this->fmtFloat($add),
+			]);
+			return;
 		}
+
+		$this->run([$this->vipsBin, 'linear', $in, $out, $this->fmtFloat($mul), $this->fmtFloat($add)]);
 	}
 
 	private function buildImageArrayArg(array $paths): string {
