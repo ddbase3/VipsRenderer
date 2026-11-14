@@ -15,19 +15,19 @@
  * https://github.com/ddbase3/VipsRenderer
  **********************************************************************/
 
-namespace VipsRenderer\Renderer;
+namespace Base3\VipsRenderer\Renderer;
 
-use MediaFoundation\Api\IImageRenderer;
-use MediaFoundation\Builder\ImageEdit;
-use MediaFoundation\Exception\ImageRenderException;
-use MediaFoundation\Exception\InvalidImageEditException;
+use Base3\MediaFoundation\Api\IImageRenderer;
+use Base3\MediaFoundation\Builder\ImageEdit;
+use Base3\MediaFoundation\Exception\ImageRenderException;
+use Base3\MediaFoundation\Exception\InvalidImageEditException;
 
 /**
  * libvips CLI-based renderer.
  *
  * - Works on local file paths (no in-memory resources).
  * - Uses temporary intermediate files to compose a pipeline.
- * - Implements the edit operations exposed by MediaFoundation\Builder\ImageEdit.
+ * - Implements the edit operations exposed by Base3\MediaFoundation\Builder\ImageEdit.
  *
  * Notes:
  * - This implementation targets the libvips CLI available as `vips` and `vipsheader`.

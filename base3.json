@@ -1,0 +1,12 @@
+{
+	"manifestVersion": 1,
+	"name": "VipsRenderer",
+	"namespace": "Base3\\VipsRenderer",
+	"version": "0.0.0",
+	"description": "VipsRenderer supplies libvips-based image rendering. It implements image transformations and export workflows. MediaFoundation remains the shared media contract owner.",
+	"license": "GPL-3.0",
+	"dependencies": {
+		"CoreFoundation": ">=4.10.0",
+		"MediaFoundation": ">=4.1.0"
+	}
+}

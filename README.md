@@ -2,8 +2,8 @@
 
 GPL-3.0 licensed BASE3 plugin providing a **libvips CLI** based image renderer.
 
-It implements the `MediaFoundation\Api\IImageRenderer` interface and renders images based on
-`MediaFoundation\Builder\ImageEdit`. The implementation is file-based (paths in/out), fast, and well-suited
+It implements the `Base3\MediaFoundation\Api\IImageRenderer` interface and renders images based on
+`Base3\MediaFoundation\Builder\ImageEdit`. The implementation is file-based (paths in/out), fast, and well-suited
 for background jobs that re-render publish-ready derivatives.
 
 ## Features
@@ -35,23 +35,23 @@ apt install -y libvips-tools
 
 Renderer implementation:
 
-* `VipsRenderer\Renderer\VipsImageRenderer`
+* `Base3\VipsRenderer\Renderer\VipsImageRenderer`
 
 Implements:
 
-* `MediaFoundation\Api\IImageRenderer`
+* `Base3\MediaFoundation\Api\IImageRenderer`
 
 Consumes edit spec:
 
-* `MediaFoundation\Builder\ImageEdit`
+* `Base3\MediaFoundation\Builder\ImageEdit`
 
 ## Usage
 
 Minimal example:
 
 ```php
-use MediaFoundation\Builder\ImageEdit;
-use VipsRenderer\Renderer\VipsImageRenderer;
+use Base3\MediaFoundation\Builder\ImageEdit;
+use Base3\VipsRenderer\Renderer\VipsImageRenderer;
 
 $renderer = new VipsImageRenderer(tmpDir: '/tmp');
 

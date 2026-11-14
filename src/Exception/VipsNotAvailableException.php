@@ -15,8 +15,8 @@
  * https://github.com/ddbase3/VipsRenderer
  **********************************************************************/
 
-namespace VipsRenderer\Exception;
+namespace Base3\VipsRenderer\Exception;
 
-use MediaFoundation\Exception\ImageRenderException;
+use Base3\MediaFoundation\Exception\ImageRenderException;
 
 final class VipsNotAvailableException extends ImageRenderException {}

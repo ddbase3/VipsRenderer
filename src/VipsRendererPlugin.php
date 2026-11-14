@@ -15,10 +15,10 @@
  * https://github.com/ddbase3/VipsRenderer
  **********************************************************************/
 
-namespace VipsRenderer;
+namespace Base3\VipsRenderer;
 
-use Base3\Api\IContainer;
-use Base3\Api\IPlugin;
+use Base3\CoreFoundation\Api\IContainer;
+use Base3\CoreFoundation\Api\IPlugin;
 
 class VipsRendererPlugin implements IPlugin {
 
