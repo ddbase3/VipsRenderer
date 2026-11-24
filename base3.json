@@ -2,11 +2,19 @@
 	"manifestVersion": 1,
 	"name": "VipsRenderer",
 	"namespace": "Base3\\VipsRenderer",
-	"version": "0.0.0",
+	"version": "5.0.0",
 	"description": "VipsRenderer supplies libvips-based image rendering. It implements image transformations and export workflows. MediaFoundation remains the shared media contract owner.",
-	"license": "GPL-3.0",
+	"license": "GPL-3.0-or-later",
+	"maintainers": [
+		{
+			"name": "Daniel Dahme",
+			"url": "https://www.base3.de",
+			"email": "info@base3.de"
+		}
+	],
+	"repository": "https://github.com/ddbase3/VipsRenderer",
 	"dependencies": {
-		"CoreFoundation": ">=4.10.0",
-		"MediaFoundation": ">=4.1.0"
+		"CoreFoundation": ">=5.0.0",
+		"MediaFoundation": ">=5.0.0"
 	}
 }
